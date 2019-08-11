@@ -334,7 +334,7 @@ function createCredentialsOnClient($name)
 						contentType: "application/json; charset=utf-8",
 						dataType: "json",
 						done: function(response) {
-							alert("Public key from authenticator has been saved on server");
+							$(document).append("User successfully created on server. Go to <a href='/index.php' >home</a> to verify you can login.");
 						}
 					});
 
