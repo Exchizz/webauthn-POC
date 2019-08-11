@@ -333,7 +333,7 @@ function createCredentialsOnClient($name)
 						}),
 						contentType: "application/json; charset=utf-8",
 						dataType: "json",
-						success: function(response) {
+						done: function(response) {
 							alert("Public key from authenticator has been saved on server");
 						}
 					});
