@@ -167,7 +167,6 @@ function authenticate($username)
 {
 	$challenge = generateRandomString(20);
 	$_SESSION["challenge"]  = $challenge;
-	$_SESSION["username"] = $username;
 
 
 
@@ -259,6 +258,8 @@ function createCredentialsOnClient($name)
 {
 	$challenge = generateRandomString(20);
 	$_SESSION["challenge"]  = $challenge;
+	$_SESSION["username"] = $name;
+
 	?>
 
 	<html>
