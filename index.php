@@ -74,10 +74,9 @@ switch ($action) {
 
 
 case "authenticate":
+	$output = array();
 	$appid = "mneerup.dk";
-	echo "Authenticating...\n";
 	$json = json_decode(file_get_contents("php://input"));
-	print_r($json);
 
 	$bs = base64_decode($json->response->authenticatorData);
 
@@ -86,13 +85,12 @@ case "authenticate":
 	$ao->rpIdHash = substr($bs, 0, 32);
 	$ao->flags = ord(substr($bs, 32, 1));
 	$ao->counter = substr($bs, 33, 4);
-	print_r($ao);
 
 	$hashId = hash('sha256', $appid, TRUE);
 	if ($hashId == $ao->rpIdHash) {
-		echo "hashes match";
+		$output[] = array("status"=> "hashes match");
 	} else {
-		echo "hashes NO match";
+		$output[] = array("status"=> "wrong hash, something is wrong");
 	}
 
 	//decode
@@ -105,22 +103,20 @@ case "authenticate":
 	$clientdatahash = hash('sha256', $clientdata, TRUE);
 
 	$signeddata = $authData . $clientdatahash;
-	echo "cid: $cid\n";
 	$publicKey = pubkey_to_pem(base64url_decode(getPublicKey($cid)));
 
 
 	if (openssl_verify($signeddata, $signature, $publicKey, OPENSSL_ALGO_SHA256)) {
-		echo "Signature is OK";
+		$output[] = array("authenticated" => "OK");
 	} else {
-		echo "Signature is NOT OK";
+		$output[] = array("authenticated" => "NOT OK");
 	}
 
-
+	echo json_encode($output);
 	break;
 
 case "saveCredentials":
 	$username = $_SESSION["username"];
-	echo "$username\n";
 	$json = json_decode(file_get_contents("php://input"));
 	$attenstion = array_to_string($json->response->attestationObject);
 
@@ -135,9 +131,9 @@ case "saveCredentials":
 	$tmp = base64url_encode($challenge_utf8);
 
 	if ($challenge_rsp == $tmp) {
-		echo "Challange: ok\n";
+		echo json_encode(array("status" => "OK"));
 	} else {
-		echo "Challange: not ok\n";
+		echo json_encode(array("status" => "NOT OK"));
 		echo "$challenge_rsp == $tmp";
 	}
 
@@ -238,10 +234,11 @@ function authenticate($username)
 						}),
 						contentType: "application/json; charset=utf-8",
 						dataType: "json",
-						success: function(response) {
-							alert("Public key from authenticator has been saved on server");
-						}
+					}).done(function(){
+							$("body").append("User successfully authenticated (signature matches)");
 					});
+
+
 				});
 
 			});
@@ -333,11 +330,11 @@ function createCredentialsOnClient($name)
 						}),
 						contentType: "application/json; charset=utf-8",
 						dataType: "json",
-						done: function(response) {
-							$(document).append("User successfully created on server. Go to <a href='/index.php' >home</a> to verify you can login.");
-						}
-					});
-
+					}).done(function(){
+							$("body").append("User successfully created on server. Go to <a href='/index.php' >home</a> to verify you can login.");
+					}).fail(function()  {
+						    alert("Sorry. Server unavailable. ");
+					}); 
 
 
 
